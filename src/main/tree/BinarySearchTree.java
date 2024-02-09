@@ -1,42 +1,52 @@
 package tree;
 
+import java.util.ArrayList;
+
 import estrut.Tree;
 
 public class BinarySearchTree implements Tree{
 
     private No raiz;
 
+    public BinarySearchTree(){
+        this.raiz = null;
+    }
+
     @Override
     public boolean buscaElemento(int valor) {
-        int terminou = 0;
-        boolean encontrou = false;
-        No ramo = raiz;
-        while(terminou == 0){
-            if(ramo == null){
-                terminou = 1;
-            }
-            else if(ramo.obterValor() == valor){
-                encontrou = true;
-                terminou = 1;
-            }
-            else{
-                if(valor > ramo.obterValor()){
-                    ramo = ramo.obterFMaior();
-                }
-                else if(ramo.obterFMaior().obterValor() == valor){
-                    ramo = ramo.obterFMaior();
-                }
-                else if(ramo.obterFMenor().obterValor() == valor){
-                    ramo = ramo.obterFMenor();
-                } 
-            }
+        No busca = buscaRecursiva(raiz, valor);
+        if(busca == null){
+            return false;
         }
-        return encontrou;
+        return true; 
+    }
+
+    //função privada recursiva de procura
+    private No buscaRecursiva(No raiz, int valor){
+        //Caso o método encontre um nó nulo ou o que tenha o valor procurado
+        if (raiz == null || raiz.obterValor() == valor) {
+            return raiz;
+        }
+        if (raiz.obterValor() < valor) {
+           return buscaRecursiva(raiz.filhoMaior, valor);
+        }
+        return buscaRecursiva(raiz.filhoMenor, valor);
     }
 
     @Override
     public int minimo() {
-        return 0;
+        return minValor(raiz);
+    }
+
+    private int minValor(No raiz) {
+        //valor inicial mínimo é a raiz
+        int minval = raiz.obterValor();
+        //encontrar o minval
+        while(raiz.filhoMenor != null){
+            minval = raiz.filhoMenor.obterValor();
+            raiz = raiz.filhoMenor;
+        }
+        return minval;
     }
 
     @Override
@@ -46,40 +56,113 @@ public class BinarySearchTree implements Tree{
 
     @Override
     public void insereElemento(int valor) {
-        if(raiz == null){
+        raiz = insereRecursivo(raiz, valor);
+    }
+
+    //Método recursivo para inserir o nó na árvore
+    private No insereRecursivo(No raiz, int valor){
+        //árvore está vazia e a raiz é nula
+        if (raiz == null) {
             raiz = new No(valor);
+            return raiz;
         }
-        No ramo = raiz;
-        Boolean inseriu = false;
-        while (inseriu == false) {    
-            if(ramo == null){
-                ramo = new No(valor);
-                inseriu = true;
-            }
-            else{
-                if(ramo)
-            }
-        }    
+        //árvore não está vazia
+        if(raiz.obterValor() > valor){
+            raiz.filhoMenor = insereRecursivo(raiz.filhoMenor, valor);
+        }
+        else if(raiz.obterValor() < valor){
+            raiz.filhoMaior = insereRecursivo(raiz.filhoMaior, valor);
+        }
+        return raiz;
     }
 
     @Override
     public void remove(int valor) {
-        return;
+        raiz = removeRecursivo(raiz, valor);
+    }
+
+    private No removeRecursivo(No raiz, int valor) {
+        //caso a árvore esteja vazia
+        if(raiz == null){
+            return raiz;
+        }
+        //percorrer a árvore
+        if(valor < raiz.obterValor()){ //percorrer a subárvore esquerda
+            raiz.filhoMenor = removeRecursivo(raiz.filhoMenor, valor);
+        }
+        else if(valor > raiz.obterValor()){ //percorre a subárvore direita
+            raiz.filhoMaior = removeRecursivo(raiz.filhoMaior, valor);
+        }
+        else{
+            //nó só tem 1 filho
+            if(raiz.filhoMaior == null){
+                return raiz.filhoMenor;
+            }
+            else if(raiz.filhoMenor == null){
+                return raiz.filhoMaior;
+            }
+            //nó tem 2 filhos
+            //pegar o sucessor emOrdem (valor mínimo na subárvore direita)
+            raiz.mudarValor(minValor(raiz.filhoMaior));
+        }
+        return raiz;
     }
 
     @Override
     public int[] preOrdem() {
-        return new int[]{1,2};
+        ArrayList<Integer> arvore = new ArrayList<>();
+        preOrdemRecursivo(this.raiz, arvore); 
+        int[] tree = new int[arvore.size()];
+        for (int i = 0; i < tree.length; i++) {
+            tree[i] = arvore.get(i);
+        }
+        return tree;
+    }
+
+    private void preOrdemRecursivo(No raiz, ArrayList<Integer> arvore) {
+        if(raiz != null){
+            arvore.add(raiz.obterValor()); 
+            preOrdemRecursivo(raiz.filhoMenor, arvore);
+            preOrdemRecursivo(raiz.filhoMaior, arvore);
+        }
     }
 
     @Override
     public int[] emOrdem() {
-        return new int[]{1,2};
+        ArrayList<Integer> arvore = new ArrayList<>();
+        emOrdemRecursivo(this.raiz, arvore); 
+        int[] tree = new int[arvore.size()];
+        for (int i = 0; i < tree.length; i++) {
+            tree[i] = arvore.get(i);
+        }
+        return tree;
     }
 
+    //método recursivo que cria um arraylist em ordem da árvore sendo analisada
+    private void emOrdemRecursivo(No raiz, ArrayList<Integer> arvore){
+        if(raiz != null){
+            emOrdemRecursivo(raiz.filhoMenor, arvore);
+            arvore.add(raiz.obterValor()); 
+            emOrdemRecursivo(raiz.filhoMaior, arvore);
+        }
+    } 
     @Override
     public int[] posOrdem() {
-        return new int[]{1,2};
+        ArrayList<Integer> arvore = new ArrayList<>();
+        posOrdemRecursivo(this.raiz, arvore); 
+        int[] tree = new int[arvore.size()];
+        for (int i = 0; i < tree.length; i++) {
+            tree[i] = arvore.get(i);
+        }
+        return tree;
+    }
+
+    private void posOrdemRecursivo(No raiz, ArrayList<Integer> arvore) {
+        if(raiz != null){
+            posOrdemRecursivo(raiz.filhoMenor, arvore);
+            posOrdemRecursivo(raiz.filhoMaior, arvore);
+            arvore.add(raiz.obterValor()); 
+        }
     }
 
 }
